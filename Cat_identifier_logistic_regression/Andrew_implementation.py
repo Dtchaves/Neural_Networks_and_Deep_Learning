@@ -6,12 +6,15 @@ from PIL import Image
 from scipy import ndimage
 import modules.help_functions as hf
 
+eps = 0.00001
+
+
 def load_dataset():
-  train_dataset = h5py.File('/home/diogo/Documentos/IC/Neural_Networks_and_Deep_Learning_exercices/Cat_identifier_logistic_regression/dataset/train_catvnoncat.h5', "r")
+  train_dataset = h5py.File('/home/diogo/Documentos/IC/Neural_Networks_and_Deep_Learning_Exercices/Cat_identifier_logistic_regression/dataset/train_catvnoncat.h5', "r")
   train_set_x_orig = np.array(train_dataset["train_set_x"][:]) # your train set features
   train_set_y_orig = np.array(train_dataset["train_set_y"][:]) # your train set labels
 
-  test_dataset = h5py.File('/home/diogo/Documentos/IC/Neural_Networks_and_Deep_Learning_exercices/Cat_identifier_logistic_regression/dataset/test_catvnoncat.h5', "r")
+  test_dataset = h5py.File('/home/diogo/Documentos/IC/Neural_Networks_and_Deep_Learning_Exercices/Cat_identifier_logistic_regression/dataset/test_catvnoncat.h5', "r")
   test_set_x_orig = np.array(test_dataset["test_set_x"][:]) # your test set features
   test_set_y_orig = np.array(test_dataset["test_set_y"][:]) # your test set labels
 
@@ -63,7 +66,8 @@ def propagate(w, b, X, Y):
     # FORWARD PROPAGATION (FROM X TO COST)
     ### START CODE HERE ### (≈ 2 lines of code)
     A = sigmoid(np.dot(w.T, X) + b)                                 # compute activation
-    cost = -np.sum(Y * np.log(A) + (1 - Y) * np.log(1 - A)) / m     # compute cost
+    cost = (1/X.shape[1]) * -(np.sum(Y * np.log(A+eps) + (1 - Y) * np.log(1 - (A-eps))))
+    # compute cost
     ### END CODE HERE ###
     
     # BACKWARD PROPAGATION (TO FIND GRAD)
@@ -244,4 +248,23 @@ print(costs)
 plt.ylabel('cost')
 plt.xlabel('iterations (per hundreds)')
 plt.title("Learning rate =" + str(model_results["learning_rate"]))
+plt.show()
+
+
+learning_rates = [0.01, 0.001, 1]
+models = {}
+for i in learning_rates:
+    print ("learning rate is: " + str(i))
+    models[str(i)] = model(train_set_x, train_set_y, test_set_x, test_set_y, num_iterations = 1500, learning_rate = i, print_cost = False)
+    print ('\n' + "-------------------------------------------------------" + '\n')
+
+for i in learning_rates:
+    plt.plot(np.squeeze(models[str(i)]["costs"]), label= str(models[str(i)]["learning_rate"]))
+
+plt.ylabel('cost')
+plt.xlabel('iterations')
+
+legend = plt.legend(loc='upper center', shadow=True)
+frame = legend.get_frame()
+frame.set_facecolor('0.90')
 plt.show()
